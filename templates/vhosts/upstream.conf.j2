@@ -1,0 +1,24 @@
+upstream cluster {
+{% for upstream in nup_upstreams %}
+  server {{ upstream }}:80;
+{% endfor %}
+
+  check interval={{ nup_check_interval }} rise={{ nup_rise }} fall={{ nup_fall }} timeout={{ nup_timeout }} type={{ nup_type }};
+  check_http_send "{{ nup_send }}";
+}
+
+server {
+  listen 80;
+
+  location / {
+    proxy_pass http://cluster;
+  }
+
+  location /upstream_status {
+    check_status;
+
+    access_log   off;
+    allow {{ (ansible_default_ipv4.network ~ '/' ~ ansible_default_ipv4.netmask) | ipaddr('net') }};
+    deny all;
+  }
+}

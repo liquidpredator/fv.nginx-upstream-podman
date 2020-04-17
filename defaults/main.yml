@@ -1,0 +1,20 @@
+#If you need to install podman on host
+nup_podman_not_installed: "false"
+nup_containers_data_dir: "/opt/containers-data"
+nup_dnsmasq:
+  domainName: "{{ inventory_hostname }}"
+  type: "dnsname"
+
+#Container vars
+nup_container_name: "nginx-lbl"
+nup_upstreams: []
+
+#Health check params
+nup_check_interval: 5000
+nup_rise: 1
+nup_fall: 3
+nup_timeout: 1500
+nup_type: "http"
+nup_send: "GET / HTTP/1.0\\r\\n\\r\\n"
+
+

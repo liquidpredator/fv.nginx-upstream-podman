@@ -1,0 +1,63 @@
+- name: disable SELinux | Install podman | NginX-Podman
+  selinux:
+    state: disabled
+  async: 60
+  poll: 1
+
+- name: Install podman rpm key | Install podman | NginX-Podman
+  rpm_key:
+    key: "http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/CentOS_7/repodata/repomd.xml.key"
+    state: present
+  async: 60
+  poll: 1
+
+- name: Add podman repository | Install podman | NginX-Podman
+  yum_repository:
+    name: devel_kubic_libcontainers_stable
+    description: Stable Releases of Upstream github.com/containers packages (CentOS_7)
+    baseurl: "http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/CentOS_7/"
+    gpgkey: "http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/CentOS_7/repodata/repomd.xml.key"
+    gpgcheck: true
+  async: 60
+  poll: 1
+
+- name: Install podman | Install podman | NginX-Podman
+  package:
+    name: "podman, PyYAML, dnsmasq"
+    state: present
+  async: 600
+  poll: 1
+
+- name: Check existing dnsname plugin in default cni configuration | Install podman | NginX-Podman
+  json_patch:
+    src: "/etc/cni/net.d/87-podman-bridge.conflist"
+    pretty: true
+    operations:
+      - op: test
+        path: "/plugins/*/type"
+        value: "{{ nup_dnsmasq.type }}"
+  register: json_test
+
+- name: Add dnsname plugin to default cni configuration | Install podman | NginX-Podman
+  json_patch:
+    src: "/etc/cni/net.d/87-podman-bridge.conflist"
+    pretty: true
+    operations:
+      - op: add
+        path: "/plugins/-"
+        value: "{{ nup_dnsmasq }}"
+  when: not json_test.tested
+
+- name: Disable metacopy settings from container storage config | Install podman | NginX-Podman
+  replace:
+    path: /etc/containers/storage.conf
+    regexp: '^(mountopt = ".*),metacopy=on(.*)'
+    replace: '\1\2'
+
+- name: Create a directory for store data | Install podman | NginX-Podman
+  file:
+    path: "{{ nup_containers_data_dir }}"
+    recurse: true
+    state: directory
+  async: 60
+  poll: 1

@@ -1,0 +1,24 @@
+- name: Create a directory for container data | Build container | NginX-Podman
+  file:
+    path: "{{ nup_containers_data_dir }}/{{ nup_container_name }}"
+    recurse: true
+    state: directory
+
+- name: Copy Dockerfile | Build container | NginX-Podman
+  copy:
+    src: Dockerfile
+    dest: "{{ nup_containers_data_dir }}/{{ nup_container_name }}/Dockerfile"
+
+- name: Copy supervisord config | Build container | NginX-Podman
+  copy:
+    src: supervisord.conf
+    dest: "{{ nup_containers_data_dir }}/{{ nup_container_name }}/supervisord.conf"
+
+- name: Build image | Build container | NginX-Podman
+  podman_image:
+    name: "{{ nup_container_name }}"
+    path: "{{ nup_containers_data_dir }}/{{ nup_container_name }}/"
+    build:
+      format: docker
+  async: 600
+  poll: 1

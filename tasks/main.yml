@@ -1,0 +1,15 @@
+- name: Install podman | NginX-Podman
+  import_tasks: install.yml
+  when: nup_podman_not_installed|bool
+  tags:
+    - install
+
+- name: Build container | NginX-Podman
+  import_tasks: build.yml
+  tags:
+    - build
+
+- name: Deploy container | NginX-Podman
+  import_tasks: deploy.yml
+  tags:
+    - deploy
